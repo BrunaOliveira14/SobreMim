@@ -63,11 +63,14 @@ img:hover{
 #basico{
   color: palevioletred;
   display: flex;
-  gap: 500px;
-  margin-left: 100px;
+  gap: 240px;
 }
 
-
+h3{
+      color: palevioletred;
+      width: 80%;
+      margin-left: 100px;
+}
 
 div{
   margin: 400px, 300px, 200px, 100px;
