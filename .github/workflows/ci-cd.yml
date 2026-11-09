@@ -1,0 +1,62 @@
+name: CI/CD - OliveiraFlix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI - Validação do site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar ferramentas de validação
+        run: npm install -g htmlhint@1 linkinator@6
+
+      - name: Validar HTML (htmlhint)
+        run: htmlhint "**/*.html"
+
+      - name: Verificar links e imagens locais (linkinator)
+        run: linkinator . --recurse --skip "^https?://(?!localhost)"
+
+  deploy:
+    name: CD - Deploy no GitHub Pages
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout do projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empacotar o site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
